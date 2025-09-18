@@ -10,12 +10,15 @@ export interface TransformationResult {
 
 /**
  * Generate SHA256 hash of the input text
- * @param text - The text to hash
+ * @param text - The text to hash (will be uppercased before hashing)
  * @returns Promise resolving to SHA256 hash as hex string
  */
 async function generateSHA256Hash(text: string): Promise<string> {
+  // Convert text to uppercase before hashing
+  const uppercasedText = text.toUpperCase();
+  
   const encoder = new TextEncoder();
-  const data = encoder.encode(text);
+  const data = encoder.encode(uppercasedText);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -113,8 +116,7 @@ export async function safe_pgp_sym_encrypt(plainText: string, passphrase: string
     // Encrypt the message with passphrase
     const encrypted = await openpgp.encrypt({
       message: await openpgp.createMessage({ text: plainText }),
-      passwords: [passphrase],
-      format: 'binary'
+      passwords: [passphrase]
     });
 
     // Convert to hex format
